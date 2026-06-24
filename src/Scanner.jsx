@@ -16,8 +16,10 @@ export default function Scanner({ operator }) {
   function evaluate(part, label) {
     if (!part || !label) return;
     const isMatch = part.replace(/\s+/g, '').includes(label.replace(/\s+/g, ''));
+    const now = new Date();
     const entry = {
-      timestamp: new Date().toLocaleString(),
+      timestamp: now.toLocaleString(),
+      timestampISO: now.toISOString(),
       operator,
       partBarcode: part,
       labelBarcode: label,
@@ -65,14 +67,14 @@ export default function Scanner({ operator }) {
     <div className="flex-1 h-screen overflow-y-auto bg-[var(--surface)]">
       <div className="px-10 py-8 max-w-[1280px] mx-auto">
         <div className="flex items-center justify-between mb-1">
-          <h2 className="text-3xl font-semibold tracking-tight text-[var(--on-surface)]">Assembly Verification</h2>
+          <h2 className="text-3xl font-semibold tracking-tight text-[var(--on-surface)]">Label to Part Matching</h2>
           <div className="flex items-center gap-2 border border-[var(--outline-variant)] rounded px-3 py-2 bg-white">
             <span className="font-mono-label text-xs text-[var(--on-surface-variant)]">Operator ID</span>
             <span className="font-mono-label text-sm font-semibold">{operator}</span>
           </div>
         </div>
         <p className="text-[var(--on-surface-variant)] mb-6">
-          Scan main part barcode followed by the sub-component label to verify structural match.
+          Scan part and then label to verify the match
         </p>
 
         <div className="grid grid-cols-[1fr_380px] gap-6 items-start">
@@ -179,26 +181,36 @@ export default function Scanner({ operator }) {
               Session started. No recent scans.
             </div>
           ) : (
-            <div>
-              {recent.map((r, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between px-5 py-3 border-b last:border-b-0 border-[var(--outline-variant)] text-sm"
-                >
-                  <span className="font-mono-label text-[var(--on-surface-variant)]">{r.timestamp}</span>
-                  <span className="font-mono-label">{r.labelBarcode}</span>
-                  <span
-                    className={`font-mono-label text-xs px-2 py-1 rounded font-semibold ${
-                      r.result === 'MATCH'
-                        ? 'bg-[var(--success-bg)] text-[var(--success-dark)]'
-                        : 'bg-[var(--error-bg)] text-[var(--error)]'
-                    }`}
-                  >
-                    {r.result}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-[var(--surface-container-low)] border-b border-[var(--outline-variant)]">
+                  <th className="text-left px-5 py-2.5 font-mono-label text-xs font-semibold text-[var(--on-surface-variant)]">TIMESTAMP</th>
+                  <th className="text-left px-5 py-2.5 font-mono-label text-xs font-semibold text-[var(--on-surface-variant)]">PART BARCODE</th>
+                  <th className="text-left px-5 py-2.5 font-mono-label text-xs font-semibold text-[var(--on-surface-variant)]">LABEL BARCODE</th>
+                  <th className="text-left px-5 py-2.5 font-mono-label text-xs font-semibold text-[var(--on-surface-variant)]">RESULT</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recent.map((r, i) => (
+                  <tr key={i} className="border-b last:border-b-0 border-[var(--outline-variant)]">
+                    <td className="px-5 py-3 font-mono-label text-[var(--on-surface-variant)]">{r.timestamp}</td>
+                    <td className="px-5 py-3 font-mono-label text-[var(--on-surface-variant)]">{r.partBarcode}</td>
+                    <td className="px-5 py-3 font-mono-label">{r.labelBarcode}</td>
+                    <td className="px-5 py-3">
+                      <span
+                        className={`font-mono-label text-xs px-2 py-1 rounded font-semibold ${
+                          r.result === 'MATCH'
+                            ? 'bg-[var(--success-bg)] text-[var(--success-dark)]'
+                            : 'bg-[var(--error-bg)] text-[var(--error)]'
+                        }`}
+                      >
+                        {r.result}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </div>
       </div>

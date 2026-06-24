@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { getHistory, exportHistoryToCSV, clearHistory } from './storage';
+import { getHistory, exportHistoryToCSV } from './storage';
 
 const PAGE_SIZE = 8;
 
@@ -18,8 +18,8 @@ export default function History() {
   const filtered = useMemo(() => {
     return all.filter((h) => {
       if (operatorFilter !== 'ALL' && h.operator !== operatorFilter) return false;
-      const ts = new Date(h.timestamp);
-      if (dateFrom && ts < new Date(dateFrom)) return false;
+      const ts = new Date(h.timestampISO || h.timestamp);
+      if (dateFrom && ts < new Date(dateFrom + 'T00:00:00')) return false;
       if (dateTo && ts > new Date(dateTo + 'T23:59:59')) return false;
       return true;
     });
@@ -35,36 +35,19 @@ export default function History() {
     setPage(0);
   }
 
-  function handleClear() {
-    if (confirm('Clear all scan history? This cannot be undone.')) {
-      clearHistory();
-      setAll([]);
-    }
-  }
-
   return (
     <div className="flex-1 h-screen overflow-y-auto bg-[var(--surface)]">
       <div className="px-10 py-8 max-w-[1280px] mx-auto">
-        <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center justify-between mb-6">
           <h2 className="text-3xl font-semibold tracking-tight text-[var(--on-surface)]">Scan Log Archive</h2>
-          <div className="flex gap-2">
-            <button
-              onClick={() => exportHistoryToCSV(filtered)}
-              disabled={filtered.length === 0}
-              className="flex items-center gap-2 px-4 py-2.5 bg-[var(--primary)] text-white rounded font-semibold text-sm hover:bg-[#1e293b] disabled:opacity-40 transition"
-            >
-              ↓ EXPORT CSV
-            </button>
-            <button
-              onClick={handleClear}
-              disabled={all.length === 0}
-              className="flex items-center gap-2 px-4 py-2.5 border border-[var(--outline-variant)] text-[var(--on-surface)] rounded font-semibold text-sm hover:bg-[var(--surface-container)] disabled:opacity-40 transition"
-            >
-              CLEAR LOG
-            </button>
-          </div>
+          <button
+            onClick={() => exportHistoryToCSV(filtered)}
+            disabled={filtered.length === 0}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[var(--primary)] text-white rounded font-semibold text-sm hover:bg-[#1e293b] disabled:opacity-40 transition"
+          >
+            ↓ EXPORT CSV
+          </button>
         </div>
-        <p className="text-[var(--on-surface-variant)] mb-6">Review validation history across all scanner nodes.</p>
 
         {/* Filters */}
         <div className="bg-white border border-[var(--outline-variant)] rounded-md p-4 mb-6 flex gap-4 items-end flex-wrap">
@@ -121,8 +104,8 @@ export default function History() {
               <tr className="bg-[var(--surface-container-low)] border-b border-[var(--outline-variant)]">
                 <th className="text-left px-5 py-3 font-mono-label text-xs font-semibold text-[var(--on-surface-variant)]">TIMESTAMP</th>
                 <th className="text-left px-5 py-3 font-mono-label text-xs font-semibold text-[var(--on-surface-variant)]">OPERATOR</th>
-                <th className="text-left px-5 py-3 font-mono-label text-xs font-semibold text-[var(--on-surface-variant)]">PART BARCODE (EXPECTED)</th>
-                <th className="text-left px-5 py-3 font-mono-label text-xs font-semibold text-[var(--on-surface-variant)]">LABEL BARCODE (SCANNED)</th>
+                <th className="text-left px-5 py-3 font-mono-label text-xs font-semibold text-[var(--on-surface-variant)]">PART BARCODE</th>
+                <th className="text-left px-5 py-3 font-mono-label text-xs font-semibold text-[var(--on-surface-variant)]">LABEL BARCODE</th>
                 <th className="text-left px-5 py-3 font-mono-label text-xs font-semibold text-[var(--on-surface-variant)]">RESULT</th>
               </tr>
             </thead>
