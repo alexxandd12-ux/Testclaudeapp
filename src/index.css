@@ -1,0 +1,67 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+  --surface: #f7f9fb;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f2f4f6;
+  --surface-container: #eceef0;
+  --surface-container-high: #e6e8ea;
+  --on-surface: #191c1e;
+  --on-surface-variant: #45474c;
+  --outline: #75777d;
+  --outline-variant: #c5c6cd;
+  --primary: #091426;
+  --primary-container: #1e293b;
+  --on-primary: #ffffff;
+  --success: #22c55e;
+  --success-dark: #006e2f;
+  --success-bg: #f0fdf4;
+  --success-border: #bbf7d0;
+  --error: #ba1a1a;
+  --error-bright: #ef4444;
+  --error-bg: #fef2f2;
+  --error-border: #fecaca;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--surface);
+  color: var(--on-surface);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-mono-label {
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.05em;
+}
+
+input::placeholder {
+  font-family: 'Inter', system-ui, sans-serif;
+  letter-spacing: normal;
+}
+
+@keyframes scanPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.scan-pulse {
+  animation: scanPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up {
+  animation: slideUp 0.25s ease-out;
+}
