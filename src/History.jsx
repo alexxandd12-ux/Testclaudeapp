@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
-import { getHistory, exportHistoryToCSV } from './storage';
+import { getHistory, exportHistoryToCSV, deleteHistoryEntry } from './storage';
+
+const DELETE_PASSWORD = 'as12345678';
 
 const PAGE_SIZE = 8;
 
@@ -9,16 +11,53 @@ export default function History() {
   const [dateTo, setDateTo] = useState('');
   const [operatorFilter, setOperatorFilter] = useState('ALL');
   const [page, setPage] = useState(0);
+  const [deleteTarget, setDeleteTarget] = useState(null); // row being considered for deletion
+  const [passwordInput, setPasswordInput] = useState('');
+  const [passwordError, setPasswordError] = useState(false);
+
+  function requestDelete(row) {
+    setDeleteTarget(row);
+    setPasswordInput('');
+    setPasswordError(false);
+  }
+
+  function cancelDelete() {
+    setDeleteTarget(null);
+    setPasswordInput('');
+    setPasswordError(false);
+  }
+
+  function confirmDelete() {
+    if (passwordInput !== DELETE_PASSWORD) {
+      setPasswordError(true);
+      return;
+    }
+    const updated = deleteHistoryEntry(deleteTarget);
+    setAll(updated);
+    setDeleteTarget(null);
+    setPasswordInput('');
+    setPasswordError(false);
+  }
 
   const operators = useMemo(() => {
     const set = new Set(all.map((h) => h.operator));
     return ['ALL', ...Array.from(set)];
   }, [all]);
 
+  function parseEntryDate(h) {
+    if (h.timestampISO) return new Date(h.timestampISO);
+    // Legacy entries only have a locale string like "24/06/2026, 12:58:56"
+    // which Date() cannot parse natively (DD/MM/YYYY). Parse manually.
+    const m = h.timestamp.match(/(\d{1,2})\/(\d{1,2})\/(\d{4}),?\s*(\d{1,2}):(\d{2}):(\d{2})/);
+    if (!m) return new Date(NaN);
+    const [, day, month, year, hh, mm, ss] = m;
+    return new Date(+year, +month - 1, +day, +hh, +mm, +ss);
+  }
+
   const filtered = useMemo(() => {
     return all.filter((h) => {
       if (operatorFilter !== 'ALL' && h.operator !== operatorFilter) return false;
-      const ts = new Date(h.timestampISO || h.timestamp);
+      const ts = parseEntryDate(h);
       if (dateFrom && ts < new Date(dateFrom + 'T00:00:00')) return false;
       if (dateTo && ts > new Date(dateTo + 'T23:59:59')) return false;
       return true;
@@ -107,19 +146,20 @@ export default function History() {
                 <th className="text-left px-5 py-3 font-mono-label text-xs font-semibold text-[var(--on-surface-variant)]">PART BARCODE</th>
                 <th className="text-left px-5 py-3 font-mono-label text-xs font-semibold text-[var(--on-surface-variant)]">LABEL BARCODE</th>
                 <th className="text-left px-5 py-3 font-mono-label text-xs font-semibold text-[var(--on-surface-variant)]">RESULT</th>
+                <th className="text-left px-5 py-3 font-mono-label text-xs font-semibold text-[var(--on-surface-variant)]"></th>
               </tr>
             </thead>
             <tbody>
               {pageRows.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-10 text-[var(--on-surface-variant)]">
+                  <td colSpan={6} className="text-center py-10 text-[var(--on-surface-variant)]">
                     No scan records found.
                   </td>
                 </tr>
               ) : (
                 pageRows.map((r, i) => (
                   <tr
-                    key={i}
+                    key={r.id || i}
                     className={`border-b last:border-b-0 border-[var(--outline-variant)] ${
                       r.result === 'MISMATCH' ? 'bg-[var(--error-bg)]' : ''
                     }`}
@@ -145,6 +185,15 @@ export default function History() {
                       >
                         {r.result === 'MATCH' ? '✓ MATCH' : '✕ MISMATCH'}
                       </span>
+                    </td>
+                    <td className="px-5 py-3 text-right">
+                      <button
+                        onClick={() => requestDelete(r)}
+                        title="Delete entry"
+                        className="w-7 h-7 inline-flex items-center justify-center rounded text-[var(--on-surface-variant)] hover:bg-[var(--error-bg)] hover:text-[var(--error)] transition text-sm"
+                      >
+                        🗑
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -176,6 +225,54 @@ export default function History() {
           </div>
         </div>
       </div>
+
+      {/* Delete confirmation modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-md shadow-2xl w-full max-w-sm border border-[var(--outline-variant)] animate-slide-up">
+            <div className="px-5 py-4 border-b border-[var(--outline-variant)]">
+              <h3 className="font-semibold text-[var(--on-surface)]">Delete scan record?</h3>
+              <p className="text-xs text-[var(--on-surface-variant)] mt-1 font-mono-label">
+                {deleteTarget.timestamp} — {deleteTarget.labelBarcode}
+              </p>
+            </div>
+            <div className="px-5 py-4">
+              <label className="block font-mono-label text-xs font-semibold text-[var(--on-surface-variant)] mb-2">
+                ENTER PASSWORD TO CONFIRM
+              </label>
+              <input
+                type="password"
+                autoFocus
+                value={passwordInput}
+                onChange={(e) => { setPasswordInput(e.target.value); setPasswordError(false); }}
+                onKeyDown={(e) => e.key === 'Enter' && confirmDelete()}
+                className={`w-full h-11 px-3 border rounded text-sm outline-none font-mono-label ${
+                  passwordError
+                    ? 'border-[var(--error)] focus:border-[var(--error)]'
+                    : 'border-[var(--outline-variant)] focus:border-[var(--primary)]'
+                }`}
+              />
+              {passwordError && (
+                <p className="text-xs text-[var(--error)] mt-1.5">Incorrect password.</p>
+              )}
+            </div>
+            <div className="px-5 py-4 border-t border-[var(--outline-variant)] flex justify-end gap-2">
+              <button
+                onClick={cancelDelete}
+                className="px-4 py-2 text-sm font-semibold rounded border border-[var(--outline-variant)] hover:bg-[var(--surface-container)] transition"
+              >
+                CANCEL
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 text-sm font-semibold rounded bg-[var(--error)] text-white hover:bg-[#a31616] transition"
+              >
+                DELETE
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

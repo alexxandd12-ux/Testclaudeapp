@@ -11,63 +11,89 @@ export default function AuthScreen({ onActivate }) {
   }
 
   return (
-    <div className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-[#1e293b]">
-      {/* Background image - industrial warehouse, blurred */}
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1565793298595-6a879b1d9492?auto=format&fit=crop&w=1600&q=60')",
-          filter: 'blur(8px) brightness(0.55)',
-          transform: 'scale(1.1)',
-        }}
-      />
-      <div className="absolute inset-0 bg-[#0b1320]/60" />
+    <div
+      className="h-screen w-screen overflow-hidden flex items-center justify-center p-8 relative"
+      style={{
+        backgroundImage:
+          "url('https://images.unsplash.com/photo-1565793298595-6a879b1d9492?auto=format&fit=crop&w=1600&q=80')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center center',
+        backdropFilter: 'blur(10px)',
+      }}
+    >
+      <div className="fixed inset-0 bg-[var(--primary)] opacity-60 z-0 pointer-events-none" />
 
-      <div className="absolute top-6 left-6 z-10">
-        <h1 className="text-white text-xl font-bold tracking-tight">Industrial Match</h1>
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 z-20 font-mono-label text-3xl md:text-[48px] text-[var(--on-surface)] uppercase tracking-widest bg-[var(--surface-container-lowest)]/80 px-8 py-4 border-2 border-[var(--primary)] shadow-lg whitespace-nowrap font-bold">
+        Label Matching - Tool
       </div>
 
+      {/* Modal */}
       <form
         onSubmit={handleSubmit}
-        className="relative z-10 w-full max-w-md bg-[var(--surface-container-low)]/95 rounded-md shadow-2xl border border-white/10 animate-slide-up"
+        className="w-full max-w-lg bg-[var(--surface-container-lowest)] border border-[var(--outline-variant)] shadow-lg flex flex-col relative z-10 overflow-hidden"
       >
-        <div className="flex items-center gap-2 px-6 py-4 border-b border-[var(--outline-variant)]">
-          <span className="text-base">▦</span>
-          <h2 className="font-mono-label text-sm font-semibold tracking-wider text-[var(--on-surface)]">
-            OPERATOR AUTHENTICATION
-          </h2>
+        {/* Header */}
+        <div className="bg-[var(--primary-container)] p-6 flex items-center justify-between border-b-4 border-[var(--primary-container)]">
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-[var(--primary-fixed-dim)]" style={{ fontSize: 32 }}>
+              qr_code_scanner
+            </span>
+            <h2 className="text-2xl font-semibold text-white m-0 uppercase tracking-wide">
+              Operator Authentication
+            </h2>
+          </div>
         </div>
 
-        <div className="px-6 py-6">
-          <p className="font-mono-label text-xs text-[var(--success-dark)] mb-4">
-            // ENTER OPERATOR ID TO ACTIVATE SCANNING BAY
-          </p>
-
-          <label className="block font-mono-label text-xs font-semibold tracking-wider text-[var(--on-surface)] mb-2">
-            OPERATOR ID / NAME
-          </label>
-          <input
-            autoFocus
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. OP-001 or JOHN SMITH"
-            className="w-full h-14 px-4 bg-white border-2 border-[var(--primary)] rounded text-base font-mono-label text-[var(--on-surface)] outline-none focus:border-[var(--success)] transition-colors"
+        {/* Body */}
+        <div className="p-8 flex flex-col gap-8 bg-[var(--surface-container-lowest)] relative">
+          <div
+            className="absolute inset-0 opacity-5 pointer-events-none"
+            style={{
+              backgroundImage:
+                'repeating-linear-gradient(45deg, #000 0, #000 1px, transparent 1px, transparent 10px)',
+            }}
           />
+          <div className="relative z-10">
+            <p className="font-mono-label text-sm mb-6 tracking-widest uppercase text-[var(--primary)]">
+              // ENTER OPERATOR NAME
+            </p>
+            <div className="flex flex-col gap-3">
+              <label className="text-sm uppercase tracking-wide font-bold text-[var(--on-surface)]" htmlFor="operator-id">
+                Operator Name
+              </label>
+              <div className="relative">
+                <input
+                  id="operator-id"
+                  autoFocus
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  type="text"
+                  className="w-full h-16 bg-[var(--surface)] border-2 border-[var(--outline-variant)] px-4 py-2 font-mono-label text-lg text-[var(--on-surface)] focus:outline-none focus:ring-1 transition-colors focus:border-[var(--primary)] focus:ring-[var(--primary)]"
+                />
+                <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-[var(--outline)]">
+                  badge
+                </span>
+              </div>
+            </div>
+          </div>
 
-          <button
-            type="submit"
-            disabled={!name.trim()}
-            className="mt-5 w-full h-14 bg-[var(--primary)] text-white rounded font-semibold tracking-wide flex items-center justify-center gap-2 hover:bg-[#1e293b] active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span>👤</span> ACTIVATE SCANNING BAY
-          </button>
+          {/* Action */}
+          <div className="relative z-10 pt-4">
+            <button
+              type="submit"
+              disabled={!name.trim()}
+              className="w-full h-16 bg-[var(--primary)] hover:bg-[var(--primary-container)] text-white flex items-center justify-center gap-3 transition-colors uppercase tracking-wider text-lg border-b-4 border-black/30 hover:border-black/50 active:border-b-0 active:translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className="material-symbols-outlined">login</span>
+              <span>SIGN IN</span>
+            </button>
+          </div>
         </div>
 
-        <div className="px-6 py-3 bg-[var(--surface-container)] border-t border-[var(--outline-variant)] rounded-b-md">
-          <p className="font-mono-label text-[11px] text-[var(--on-surface-variant)]">
-            SYS: All scan events will be logged under this operator ID.
-          </p>
+        {/* Footer */}
+        <div className="bg-[var(--surface-container)] p-4 border-t border-[var(--outline-variant)] flex justify-between items-center text-[var(--on-surface-variant)] font-mono-label text-xs uppercase">
+          <span>all scans will be lodged under this name.</span>
+          <span className="material-symbols-outlined text-base">verified_user</span>
         </div>
       </form>
     </div>

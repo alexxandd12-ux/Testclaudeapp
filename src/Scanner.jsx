@@ -18,6 +18,7 @@ export default function Scanner({ operator }) {
     const isMatch = part.replace(/\s+/g, '').includes(label.replace(/\s+/g, ''));
     const now = new Date();
     const entry = {
+      id: `${now.getTime()}-${Math.random().toString(36).slice(2, 8)}`,
       timestamp: now.toLocaleString(),
       timestampISO: now.toISOString(),
       operator,

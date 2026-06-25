@@ -21,6 +21,22 @@ export function clearHistory() {
   localStorage.removeItem(HISTORY_KEY);
 }
 
+export function deleteHistoryEntry(target) {
+  const history = getHistory().filter((h) => {
+    if (target.id != null && h.id != null) return h.id !== target.id;
+    // Legacy entries have no id — fall back to matching on full content + position
+    return !(
+      h.timestamp === target.timestamp &&
+      h.operator === target.operator &&
+      h.partBarcode === target.partBarcode &&
+      h.labelBarcode === target.labelBarcode &&
+      h.result === target.result
+    );
+  });
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  return history;
+}
+
 export function getOperator() {
   return localStorage.getItem(OPERATOR_KEY) || '';
 }
