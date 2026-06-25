@@ -81,43 +81,57 @@ export default function Scanner({ operator }) {
         <div className="grid grid-cols-[1fr_380px] gap-6 items-start">
           {/* Left: inputs */}
           <div className="flex flex-col gap-6">
-            <div className={`bg-white rounded-md border-2 transition-colors p-5 ${borderClass('part')}`}>
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-semibold text-base flex items-center gap-2">
-                  <span>◎</span> Part Scan
-                </span>
-                <span className="text-xs font-mono-label bg-[var(--surface-container)] text-[var(--on-surface-variant)] px-2 py-1 rounded">
-                  Primary
-                </span>
-              </div>
-              <input
-                ref={partInputRef}
-                value={partScan}
-                onChange={(e) => setPartScan(e.target.value)}
-                onKeyDown={handlePartKeyDown}
-                placeholder="Scan or type part barcode..."
-                className="w-full h-14 px-4 border border-[var(--outline-variant)] rounded font-mono-label text-base outline-none focus:border-[var(--primary)]"
+            <div className="grid grid-cols-[140px_1fr] gap-4 items-stretch">
+              <img
+                src="/part-reference.jpg"
+                alt="Example part label to scan"
+                className="w-full h-full object-cover rounded-md border border-[var(--outline-variant)] bg-[var(--surface-container-low)]"
               />
+              <div className={`bg-white rounded-md border-2 transition-colors p-5 ${borderClass('part')}`}>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="font-semibold text-base flex items-center gap-2">
+                    <span>◎</span> Part Scan
+                  </span>
+                  <span className="text-xs font-mono-label bg-[var(--surface-container)] text-[var(--on-surface-variant)] px-2 py-1 rounded">
+                    Primary
+                  </span>
+                </div>
+                <input
+                  ref={partInputRef}
+                  value={partScan}
+                  onChange={(e) => setPartScan(e.target.value)}
+                  onKeyDown={handlePartKeyDown}
+                  placeholder="Scan or type part barcode..."
+                  className="w-full h-14 px-4 border border-[var(--outline-variant)] rounded font-mono-label text-base outline-none focus:border-[var(--primary)]"
+                />
+              </div>
             </div>
 
-            <div className={`bg-white rounded-md border-2 transition-colors p-5 ${borderClass('label')}`}>
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-semibold text-base flex items-center gap-2">
-                  <span>⬡</span> Label Scan
-                </span>
-                <span className="text-xs font-mono-label bg-[var(--surface-container)] text-[var(--on-surface-variant)] px-2 py-1 rounded">
-                  Sub-component
-                </span>
-              </div>
-              <input
-                ref={labelInputRef}
-                value={labelScan}
-                onChange={(e) => handleLabelChange(e.target.value)}
-                onKeyDown={handleLabelKeyDown}
-                disabled={!partScan}
-                placeholder={partScan ? 'Scan or type label barcode...' : 'Scan part first'}
-                className="w-full h-14 px-4 border border-[var(--outline-variant)] rounded font-mono-label text-base outline-none focus:border-[var(--primary)] disabled:bg-[var(--surface-container-low)] disabled:cursor-not-allowed"
+            <div className="grid grid-cols-[140px_1fr] gap-4 items-stretch">
+              <img
+                src="/label-reference.jpg"
+                alt="Example sub-component label to scan"
+                className="w-full h-full object-cover rounded-md border border-[var(--outline-variant)] bg-[var(--surface-container-low)]"
               />
+              <div className={`bg-white rounded-md border-2 transition-colors p-5 ${borderClass('label')}`}>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="font-semibold text-base flex items-center gap-2">
+                    <span>⬡</span> Label Scan
+                  </span>
+                  <span className="text-xs font-mono-label bg-[var(--surface-container)] text-[var(--on-surface-variant)] px-2 py-1 rounded">
+                    Sub-component
+                  </span>
+                </div>
+                <input
+                  ref={labelInputRef}
+                  value={labelScan}
+                  onChange={(e) => handleLabelChange(e.target.value)}
+                  onKeyDown={handleLabelKeyDown}
+                  disabled={!partScan}
+                  placeholder={partScan ? 'Scan or type label barcode...' : 'Scan part first'}
+                  className="w-full h-14 px-4 border border-[var(--outline-variant)] rounded font-mono-label text-base outline-none focus:border-[var(--primary)] disabled:bg-[var(--surface-container-low)] disabled:cursor-not-allowed"
+                />
+              </div>
             </div>
 
             {status !== 'idle' && (
