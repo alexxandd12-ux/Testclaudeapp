@@ -14,11 +14,9 @@ export default function AuthScreen({ onActivate }) {
     <div
       className="h-screen w-screen overflow-hidden flex items-center justify-center p-8 relative"
       style={{
-        backgroundImage:
-          "url('https://images.unsplash.com/photo-1565793298595-6a879b1d9492?auto=format&fit=crop&w=1600&q=80')",
+        backgroundImage: "url('/auth-background.jpg')",
         backgroundSize: 'cover',
         backgroundPosition: 'center center',
-        backdropFilter: 'blur(10px)',
       }}
     >
       <div className="fixed inset-0 bg-[var(--primary)] opacity-60 z-0 pointer-events-none" />
