@@ -49,30 +49,74 @@ export default function Scanner({ operator }) {
     setRecent(updated.slice(0, 4));
   }, [operator]);
 
-  // Auto-submit: when scanner finishes injecting characters, a 150ms pause
-  // triggers the action (move focus or evaluate). This works because barcode
-  // scanners type characters very rapidly with no pauses between them.
+  // --- Scanner / paste detection ---
+  // Barcode scanners inject characters in rapid bursts (< 50ms between keys).
+  // Manual typing is much slower (100ms+). We track keystroke timing to tell
+  // them apart. Paste events are also detected explicitly.
+  // Manual typing always requires pressing Enter.
+  const burstCountRef = useRef(0);
+  const lastKeystrokeRef = useRef(0);
+  const SCAN_THRESHOLD_MS = 50; // max gap between keystrokes to count as scanner burst
+  const SCAN_MIN_CHARS = 4;     // minimum burst length to trigger auto-submit
+
+  function detectScannerBurst() {
+    const now = Date.now();
+    const gap = now - lastKeystrokeRef.current;
+    lastKeystrokeRef.current = now;
+
+    if (gap < SCAN_THRESHOLD_MS) {
+      burstCountRef.current++;
+    } else {
+      burstCountRef.current = 1; // reset burst on slow input
+    }
+
+    return burstCountRef.current >= SCAN_MIN_CHARS;
+  }
+
   function handlePartChange(value) {
     setPartScan(value);
+    const isScan = detectScannerBurst();
     clearTimeout(partTimerRef.current);
-    if (value.trim()) {
+    if (isScan && value.trim()) {
+      // Scanner detected — wait a tiny bit for the burst to fully finish, then move focus
       partTimerRef.current = setTimeout(() => {
         labelInputRef.current?.focus();
-      }, 150);
+      }, 80);
     }
   }
 
   function handleLabelChange(value) {
     setLabelScan(value);
+    const isScan = detectScannerBurst();
     clearTimeout(labelTimerRef.current);
-    if (value.trim() && partScan.trim()) {
+    if (isScan && value.trim() && partScan.trim()) {
+      // Scanner detected — wait a tiny bit for the burst to fully finish, then evaluate
       labelTimerRef.current = setTimeout(() => {
         evaluate(partScan, value);
-      }, 150);
+      }, 80);
     }
   }
 
-  // Keep manual Enter support as fallback
+  // Paste handler — treat paste like a scanner scan (auto-submit)
+  function handlePartPaste(e) {
+    setTimeout(() => {
+      const value = partInputRef.current?.value;
+      if (value?.trim()) {
+        labelInputRef.current?.focus();
+      }
+    }, 10);
+  }
+
+  function handleLabelPaste(e) {
+    setTimeout(() => {
+      const value = labelInputRef.current?.value;
+      if (value?.trim() && partScan.trim()) {
+        evaluate(partScan, value);
+      }
+    }, 10);
+  }
+
+  // Manual Enter key support
   function handlePartKeyDown(e) {
     if (e.key === 'Enter') {
       clearTimeout(partTimerRef.current);
@@ -156,6 +200,7 @@ export default function Scanner({ operator }) {
                   value={partScan}
                   onChange={(e) => handlePartChange(e.target.value)}
                   onKeyDown={handlePartKeyDown}
+                  onPaste={handlePartPaste}
                   placeholder="Scan or type part barcode..."
                   className="w-full h-14 px-4 border border-[var(--outline-variant)] rounded font-mono-label text-base outline-none focus:border-[var(--primary)]"
                 />
@@ -182,6 +227,7 @@ export default function Scanner({ operator }) {
                   value={labelScan}
                   onChange={(e) => handleLabelChange(e.target.value)}
                   onKeyDown={handleLabelKeyDown}
+                  onPaste={handleLabelPaste}
                   disabled={!partScan}
                   placeholder={partScan ? 'Scan or type label barcode...' : 'Scan part first'}
                   className="w-full h-14 px-4 border border-[var(--outline-variant)] rounded font-mono-label text-base outline-none focus:border-[var(--primary)] disabled:bg-[var(--surface-container-low)] disabled:cursor-not-allowed"
