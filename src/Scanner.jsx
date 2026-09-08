@@ -49,36 +49,17 @@ export default function Scanner({ operator }) {
     setRecent(updated.slice(0, 4));
   }, [operator]);
 
-  // --- Scanner / paste detection ---
-  // Barcode scanners inject characters in rapid bursts (< 50ms between keys).
-  // Manual typing is much slower (100ms+). We track keystroke timing to tell
-  // them apart. Paste events are also detected explicitly.
-  // Manual typing always requires pressing Enter.
-  const burstCountRef = useRef(0);
-  const lastKeystrokeRef = useRef(0);
-  const SCAN_THRESHOLD_MS = 50; // max gap between keystrokes to count as scanner burst
-  const SCAN_MIN_CHARS = 4;     // minimum burst length to trigger auto-submit
-
-  function detectScannerBurst() {
-    const now = Date.now();
-    const gap = now - lastKeystrokeRef.current;
-    lastKeystrokeRef.current = now;
-
-    if (gap < SCAN_THRESHOLD_MS) {
-      burstCountRef.current++;
-    } else {
-      burstCountRef.current = 1; // reset burst on slow input
-    }
-
-    return burstCountRef.current >= SCAN_MIN_CHARS;
-  }
+  // --- Auto-submit detection ---
+  // Barcode values are 19+ characters long. Auto-submit when the input
+  // reaches that length (covers both scanner and typed-in full barcodes).
+  // Paste events also trigger auto-submit regardless of length.
+  // Shorter manual input always requires pressing Enter.
+  const AUTO_SUBMIT_MIN_LENGTH = 19;
 
   function handlePartChange(value) {
     setPartScan(value);
-    const isScan = detectScannerBurst();
     clearTimeout(partTimerRef.current);
-    if (isScan && value.trim()) {
-      // Scanner detected — wait a tiny bit for the burst to fully finish, then move focus
+    if (value.trim().length >= AUTO_SUBMIT_MIN_LENGTH) {
       partTimerRef.current = setTimeout(() => {
         labelInputRef.current?.focus();
       }, 80);
@@ -87,17 +68,15 @@ export default function Scanner({ operator }) {
 
   function handleLabelChange(value) {
     setLabelScan(value);
-    const isScan = detectScannerBurst();
     clearTimeout(labelTimerRef.current);
-    if (isScan && value.trim() && partScan.trim()) {
-      // Scanner detected — wait a tiny bit for the burst to fully finish, then evaluate
+    if (value.trim().length >= AUTO_SUBMIT_MIN_LENGTH && partScan.trim()) {
       labelTimerRef.current = setTimeout(() => {
         evaluate(partScan, value);
       }, 80);
     }
   }
 
-  // Paste handler — treat paste like a scanner scan (auto-submit)
+  // Paste handler — treat paste like a scan (auto-submit)
   function handlePartPaste(e) {
     setTimeout(() => {
       const value = partInputRef.current?.value;
